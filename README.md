@@ -1,0 +1,1 @@
+# MNSTROI-loading
