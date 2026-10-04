@@ -161,7 +161,7 @@
         <source src="ThreeDrivesGreece2000(KREAM Remix).mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Háttérképek (10 KÉP) -->
+    <!-- Háttérképek (PONTOSAN A TI 10 KÉPETEK) -->
     <div class="bg-slider">
         <div class="bg-slide active" style="background-image: url('4000_12.jpg');"></div>
         <div class="bg-slide" style="background-image: url('4000_13.jpg');"></div>
@@ -231,7 +231,7 @@
     </div>
 
     <script>
-        // HANGERŐ ÉS LINDÍTÁS BIZTOSÍTÁSA
+        // HANGERŐ ÉS INDÍTÁS BIZTOSÍTÁSA
         const music = document.getElementById('bg-music');
         if (music) {
             music.volume = 0.25;
@@ -258,29 +258,52 @@
             slides[currentSlide].classList.add('active');
         }, 5000);
 
+        // Globális változók a letöltéshez
+        window.totalFiles = 0;
+        window.neededFiles = 0;
+
         // GMod Függvények
         function GameDetails(servername, serverurl, mapname, maxplayers, steamid, gamemode) {
-            document.getElementById('server-name').innerText = servername;
-            document.getElementById('map-name').innerText = 'Pálya: ' + mapname;
+            if (servername) document.getElementById('server-name').innerText = servername;
+            if (mapname) document.getElementById('map-name').innerText = 'Pálya: ' + mapname;
 
             if (steamid) {
                 document.getElementById('player-steamid').innerText = steamid;
-                document.getElementById('player-avatar').src = "https://avatars.steamstatic.com/" + steamid + "_full.jpg";
+                
+                // Működő Steam Avatar CDN lekérés SteamID64 alapján
+                const avatarImg = document.getElementById('player-avatar');
+                avatarImg.src = "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/" + steamid.substr(3, 2) + "/" + steamid + "_full.jpg";
+                
+                // Tartalék megoldás, ha a közvetlen CDN nem töltene be:
+                avatarImg.onerror = function() {
+                    this.src = "https://i.imgur.com/6VBx3io.png"; // Eredeti tartalék kép
+                };
             }
         }
 
         function SetStatusChanged(status) {
             document.getElementById('status-text').innerText = status;
+            
+            // Ha nincsenek letöltendő fájlok, a státuszok alapján lassan léptetjük a csíkot
+            if (!window.totalFiles || window.totalFiles === 0) {
+                let bar = document.getElementById('progress-bar');
+                let currentWidth = parseFloat(bar.style.width) || 0;
+                if (currentWidth < 90) {
+                    bar.style.width = (currentWidth + 15) + '%';
+                }
+            }
         }
 
         function SetFilesNeeded(needed) { 
             window.totalFiles = needed; 
+            window.neededFiles = needed;
         }
 
         function SetFilesRemaining(remaining) {
             if (window.totalFiles && window.totalFiles > 0) {
-                let progress = ((window.totalFiles - remaining) / window.totalFiles) * 100;
-                document.getElementById('progress-bar').style.width = progress + '%';
+                let downloaded = window.totalFiles - remaining;
+                let progress = (downloaded / window.totalFiles) * 100;
+                document.getElementById('progress-bar').style.width = Math.min(progress, 100) + '%';
             }
         }
     </script>
