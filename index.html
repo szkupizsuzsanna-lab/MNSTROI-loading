@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>GMod Loading Screen</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+            overflow: hidden;
+            position: relative;
+            background-color: #111;
+        }
+
+        /* DIAVETÍTÉS HÁTTÉR (10 KÉP) */
+        .bg-slider {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+        }
+        .bg-slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        .bg-slide.active {
+            opacity: 1;
+        }
+
+        /* BAL OLDALI KONTÉNER (FEJLÉC + SZABÁLYZAT) */
+        .left-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 420px;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #00a8ff;
+            backdrop-filter: blur(5px);
+        }
+        .server-name { font-size: 1.8rem; color: #00a8ff; margin-bottom: 5px; }
+        .map-name { font-size: 1.05rem; color: #ccc; }
+
+        /* SZABÁLYZAT WIDGET */
+        .rules-widget {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #00a8ff;
+            backdrop-filter: blur(5px);
+        }
+        .rules-widget h3 {
+            color: #00a8ff;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+        }
+        .rules-widget ul {
+            list-style: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .rules-widget li {
+            margin-bottom: 6px;
+            color: #eee;
+        }
+
+        /* JOBB OLDALI WIDGETEK (OWNER & JÁTÉKOS) */
+        .widgets-container {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 320px;
+        }
+
+        .widget-card {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 5px solid #00a8ff;
+            backdrop-filter: blur(5px);
+        }
+        .widget-title {
+            font-size: 1.1rem;
+            color: #00a8ff;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* PROFILOK */
+        .profile-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .profile-avatar {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 2px solid #00a8ff;
+            object-fit: cover;
+        }
+        .profile-info .name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .profile-info .subtext {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: 2px;
+            word-break: break-all;
+        }
+
+        /* LÁBLÉC */
+        .footer {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+        .status { font-size: 1rem; margin-bottom: 10px; }
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-bar { width: 0%; height: 100%; background: #00a8ff; transition: width 0.2s; }
+    </style>
+</head>
+<body>
+
+    <!-- Háttérképek (10 KÉP) -->
+    <div class="bg-slider">
+        <div class="bg-slide active" style="background-image: url('https://i.imgur.com/8QzX9mC.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/P4M12qF.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/uGfJq5C.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/8QzX9mC.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/P4M12qF.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/uGfJq5C.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/8QzX9mC.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/P4M12qF.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/uGfJq5C.jpg');"></div>
+        <div class="bg-slide" style="background-image: url('https://i.imgur.com/8QzX9mC.jpg');"></div>
+    </div>
+
+    <!-- Bal oldali rész: Szerver infó + Szabályzat -->
+    <div class="left-container">
+        <div class="header">
+            <h1 class="server-name" id="server-name">Szerver csatlakozás...</h1>
+            <p class="map-name" id="map-name">Pálya: Betöltés...</p>
+        </div>
+
+        <div class="rules-widget">
+            <h3>Szerverszabályok</h3>
+            <ul>
+                <li>1. Tiszteld a többi játékost!</li>
+                <li>2. Tilos a Cheating / RDM.</li>
+                <li>3. Hallgass az adminokra!</li>
+                <li>4. Jó szórakozást!</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Jobb oldali rész: Owner & Játékos Widgetek -->
+    <div class="widgets-container">
+        
+        <!-- Owner Widget -->
+        <div class="widget-card">
+            <div class="widget-title">Szerver Tulajdonos</div>
+            <div class="profile-box">
+                <img class="profile-avatar" src="https://i.imgur.com/6VBx3io.png" alt="Owner Avatar">
+                <div class="profile-info">
+                    <div class="name">TulajNeve</div>
+                    <div class="subtext">Owner & Developer</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Játékos Widget -->
+        <div class="widget-card">
+            <div class="widget-title">Csatlakozó Játékos</div>
+            <div class="profile-box">
+                <img id="player-avatar" class="profile-avatar" src="https://i.imgur.com/6VBx3io.png" alt="Player Avatar">
+                <div class="profile-info">
+                    <div class="name">Kérdezés...</div>
+                    <div class="subtext" id="player-steamid">SteamID: Betöltés...</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Lábléc -->
+    <div class="footer">
+        <p class="status" id="status-text">Csatlakozás indítása...</p>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        // Diavetítés (5 mp-enként lépteti a 10 képet körbe-körbe)
+        const slides = document.querySelectorAll('.bg-slide');
+        let currentSlide = 0;
+        setInterval(() => {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }, 5000);
+
+        // GMod Függvények
+        function GameDetails(servername, serverurl, mapname, maxplayers, steamid, gamemode) {
+            document.getElementById('server-name').innerText = servername;
+            document.getElementById('map-name').innerText = 'Pálya: ' + mapname;
+
+            if (steamid) {
+                document.getElementById('player-steamid').innerText = steamid;
+                document.getElementById('player-avatar').src = "https://avatars.steamstatic.com/" + steamid + "_full.jpg";
+            }
+        }
+
+        function SetStatusChanged(status) {
+            document.getElementById('status-text').innerText = status;
+        }
+
+        function SetFilesNeeded(needed) { 
+            window.totalFiles = needed; 
+        }
+
+        function SetFilesRemaining(remaining) {
+            if (window.totalFiles && window.totalFiles > 0) {
+                let progress = ((window.totalFiles - remaining) / window.totalFiles) * 100;
+                document.getElementById('progress-bar').style.width = progress + '%';
+            }
+        }
+    </script>
+</body>
+</html>
